@@ -1,109 +1,114 @@
-'use client'
+"use client";
 
-import { useState, useRef, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Camera, X, Check, RotateCcw } from 'lucide-react'
+import { useState, useRef, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Camera, X, Check, RotateCcw } from "lucide-react";
 
 interface CameraCaptureProps {
-  userId: string
-  onCaptureComplete?: () => void
+  userId: string;
+  onCaptureComplete?: () => void;
 }
 
-export function CameraCapture({ userId, onCaptureComplete }: CameraCaptureProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [stream, setStream] = useState<MediaStream | null>(null)
-  const [capturedImage, setCapturedImage] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [isActive, setIsActive] = useState(false)
+export function CameraCapture({
+  userId,
+  onCaptureComplete,
+}: CameraCaptureProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isActive, setIsActive] = useState(false);
 
   const startCamera = useCallback(async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+        video: { facingMode: "environment" },
         audio: false,
-      })
-      setStream(mediaStream)
-      setIsActive(true)
-      setError(null)
+      });
+      setStream(mediaStream);
+      setIsActive(true);
+      setError(null);
 
       if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
+        videoRef.current.srcObject = mediaStream;
       }
     } catch {
-      setError('Não foi possível acessar a câmera. Verifique as permissões do navegador.')
+      setError(
+        "Não foi possível acessar a câmera. Verifique as permissões do navegador.",
+      );
     }
-  }, [])
+  }, []);
 
   const stopCamera = useCallback(() => {
     if (stream) {
-      stream.getTracks().forEach((track) => track.stop())
-      setStream(null)
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
     }
-    setIsActive(false)
-  }, [stream])
+    setIsActive(false);
+  }, [stream]);
 
   const capturePhoto = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) return
+    if (!videoRef.current || !canvasRef.current) return;
 
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext("2d");
     if (ctx) {
-      ctx.drawImage(video, 0, 0)
-      const imageData = canvas.toDataURL('image/jpeg', 0.9)
-      setCapturedImage(imageData)
-      stopCamera()
+      ctx.drawImage(video, 0, 0);
+      const imageData = canvas.toDataURL("image/jpeg", 0.9);
+      setCapturedImage(imageData);
+      stopCamera();
     }
-  }, [stopCamera])
+  }, [stopCamera]);
 
   const retakePhoto = useCallback(() => {
-    setCapturedImage(null)
-    startCamera()
-  }, [startCamera])
+    setCapturedImage(null);
+    startCamera();
+  }, [startCamera]);
 
   const uploadPhoto = useCallback(async () => {
-    if (!capturedImage) return
+    if (!capturedImage) return;
 
-    setIsUploading(true)
-    setError(null)
+    setIsUploading(true);
+    setError(null);
 
     try {
-      const response = await fetch(capturedImage)
-      const blob = await response.blob()
+      const response = await fetch(capturedImage);
+      const blob = await response.blob();
       const file = new File([blob], `camera-capture-${Date.now()}.jpg`, {
-        type: 'image/jpeg',
-      })
+        type: "image/jpeg",
+      });
 
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('userId', userId)
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("userId", userId);
 
-      const uploadResponse = await fetch('/api/documents', {
-        method: 'POST',
+      const uploadResponse = await fetch("/api/documents", {
+        method: "POST",
         body: formData,
-      })
+      });
 
-      const result = await uploadResponse.json()
+      const result = await uploadResponse.json();
 
       if (!uploadResponse.ok) {
-        setError(result.error)
-        return
+        setError(result.error);
+        return;
       }
 
-      setCapturedImage(null)
-      onCaptureComplete?.()
+      setCapturedImage(null);
+      onCaptureComplete?.();
     } catch {
-      setError('Erro ao enviar foto')
+      setError("Erro ao enviar foto");
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }, [capturedImage, userId, onCaptureComplete])
+  }, [capturedImage, userId, onCaptureComplete]);
 
   return (
     <Card className="p-6">
@@ -155,9 +160,13 @@ export function CameraCapture({ userId, onCaptureComplete }: CameraCaptureProps)
                 disabled={isUploading}
                 className="flex-1"
               >
-                {isUploading ? 'Enviando...' : 'Enviar Foto'}
+                {isUploading ? "Enviando..." : "Enviar Foto"}
               </Button>
-              <Button onClick={retakePhoto} variant="outline" className="flex-1">
+              <Button
+                onClick={retakePhoto}
+                variant="outline"
+                className="flex-1"
+              >
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Tirar Outra
               </Button>
@@ -172,5 +181,5 @@ export function CameraCapture({ userId, onCaptureComplete }: CameraCaptureProps)
         )}
       </div>
     </Card>
-  )
+  );
 }

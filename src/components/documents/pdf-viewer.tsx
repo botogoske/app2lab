@@ -1,46 +1,46 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Document, Page, pdfjs } from 'react-pdf'
-import 'react-pdf/dist/Page/AnnotationLayer.css'
-import 'react-pdf/dist/Page/TextLayer.css'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
+  "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url,
-).toString()
+).toString();
 
 interface PdfViewerProps {
-  fileUrl: string
+  fileUrl: string;
 }
 
 export function PdfViewer({ fileUrl }: PdfViewerProps) {
-  const [numPages, setNumPages] = useState<number>(0)
-  const [pageNumber, setPageNumber] = useState<number>(1)
-  const [scale, setScale] = useState<number>(1)
-  const [containerWidth, setContainerWidth] = useState<number>(800)
+  const [numPages, setNumPages] = useState<number>(0);
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [scale, setScale] = useState<number>(1);
+  const [containerWidth, setContainerWidth] = useState<number>(800);
 
   useEffect(() => {
     const updateWidth = () => {
-      setContainerWidth(Math.min(window.innerWidth - 32, 800))
-    }
-    updateWidth()
-    window.addEventListener('resize', updateWidth)
-    return () => window.removeEventListener('resize', updateWidth)
-  }, [])
+      setContainerWidth(Math.min(window.innerWidth - 32, 800));
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    setNumPages(numPages)
-    setPageNumber(1)
+    setNumPages(numPages);
+    setPageNumber(1);
   }
 
-  const goToPrevPage = () => setPageNumber(Math.max(1, pageNumber - 1))
-  const goToNextPage = () => setPageNumber(Math.min(numPages, pageNumber + 1))
-  const zoomIn = () => setScale(Math.min(2, scale + 0.2))
-  const zoomOut = () => setScale(Math.max(0.5, scale - 0.2))
+  const goToPrevPage = () => setPageNumber(Math.max(1, pageNumber - 1));
+  const goToNextPage = () => setPageNumber(Math.min(numPages, pageNumber + 1));
+  const zoomIn = () => setScale(Math.min(2, scale + 0.2));
+  const zoomOut = () => setScale(Math.max(0.5, scale - 0.2));
 
   return (
     <Card className="p-4">
@@ -101,5 +101,5 @@ export function PdfViewer({ fileUrl }: PdfViewerProps) {
         </div>
       </div>
     </Card>
-  )
+  );
 }

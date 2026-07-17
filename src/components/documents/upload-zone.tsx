@@ -1,71 +1,71 @@
-'use client'
+"use client";
 
-import { useState, useCallback } from 'react'
-import { useDropzone } from 'react-dropzone'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Upload, FileText, X } from 'lucide-react'
+import { useState, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Upload, FileText, X } from "lucide-react";
 
 interface UploadZoneProps {
-  userId: string
-  onUploadComplete?: () => void
+  userId: string;
+  onUploadComplete?: () => void;
 }
 
 export function UploadZone({ userId, onUploadComplete }: UploadZoneProps) {
-  const [isUploading, setIsUploading] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
-      setSelectedFile(acceptedFiles[0])
-      setError(null)
+      setSelectedFile(acceptedFiles[0]);
+      setError(null);
     }
-  }, [])
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'application/pdf': ['.pdf'],
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png'],
-      'image/webp': ['.webp'],
+      "application/pdf": [".pdf"],
+      "image/jpeg": [".jpg", ".jpeg"],
+      "image/png": [".png"],
+      "image/webp": [".webp"],
     },
     maxFiles: 1,
     maxSize: 10 * 1024 * 1024, // 10MB
-  })
+  });
 
   const handleUpload = async () => {
-    if (!selectedFile) return
+    if (!selectedFile) return;
 
-    setIsUploading(true)
-    setError(null)
+    setIsUploading(true);
+    setError(null);
 
     try {
-      const formData = new FormData()
-      formData.append('file', selectedFile)
-      formData.append('userId', userId)
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("userId", userId);
 
-      const response = await fetch('/api/documents', {
-        method: 'POST',
+      const response = await fetch("/api/documents", {
+        method: "POST",
         body: formData,
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error)
-        return
+        setError(result.error);
+        return;
       }
 
-      setSelectedFile(null)
-      onUploadComplete?.()
+      setSelectedFile(null);
+      onUploadComplete?.();
     } catch {
-      setError('Erro ao enviar arquivo')
+      setError("Erro ao enviar arquivo");
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   return (
     <Card className="p-6">
@@ -74,8 +74,8 @@ export function UploadZone({ userId, onUploadComplete }: UploadZoneProps) {
           {...getRootProps()}
           className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
             isDragActive
-              ? 'border-primary bg-primary/5'
-              : 'border-border hover:border-primary/50'
+              ? "border-primary bg-primary/5"
+              : "border-border hover:border-primary/50"
           }`}
         >
           <input {...getInputProps()} />
@@ -124,9 +124,9 @@ export function UploadZone({ userId, onUploadComplete }: UploadZoneProps) {
           disabled={!selectedFile || isUploading}
           className="w-full"
         >
-          {isUploading ? 'Enviando...' : 'Enviar Documento'}
+          {isUploading ? "Enviando..." : "Enviar Documento"}
         </Button>
       </div>
     </Card>
-  )
+  );
 }
