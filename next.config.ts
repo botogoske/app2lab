@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
     "prisma",
     "pg",
     "bcryptjs",
+    "pdfjs-dist",
+    "tesseract.js",
   ],
 };
 

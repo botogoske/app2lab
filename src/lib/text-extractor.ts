@@ -11,10 +11,7 @@ export async function extractTextFromFile(
 }
 
 async function extractTextFromPdf(filePath: string): Promise<string> {
-  const pdfjsLib = await import('pdfjs-dist')
-
-  // Desabilitar worker no servidor para evitar problemas de resolução
-  pdfjsLib.GlobalWorkerOptions.workerSrc = ''
+  const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
 
   const data = new Uint8Array(readFileSync(filePath))
   const doc = await pdfjsLib.getDocument({ data, useWorkerFetch: false }).promise
