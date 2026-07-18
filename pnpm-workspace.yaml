@@ -2,4 +2,5 @@ allowBuilds:
   '@prisma/engines': false
   prisma: false
   sharp: false
+  tesseract.js: set this to true or false
   unrs-resolver: false

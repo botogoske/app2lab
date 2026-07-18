@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     if (!file || !userId) {
       return NextResponse.json(
         { error: 'Arquivo e userId são obrigatórios' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -29,28 +29,32 @@ export async function POST(request: Request) {
     if (!isPdf && !isImage) {
       return NextResponse.json(
         { error: 'Tipo de arquivo não suportado. Use PDF ou imagens (JPG, PNG, WebP)' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
+    // Salvar arquivo
     const uploadsDir = join(process.cwd(), 'public', 'uploads')
     await mkdir(uploadsDir, { recursive: true })
 
     const fileName = `${uuidv4()}.${fileExtension}`
     const filePath = join(uploadsDir, fileName)
-
     await writeFile(filePath, buffer)
 
+    // Extrair texto do documento
     const fileType = isPdf ? 'pdf' : 'image'
+    let extractedText = ''
     let personName: string | null = null
 
     try {
-      const extractedText = await extractTextFromFile(filePath, fileType)
+      extractedText = await extractTextFromFile(filePath, fileType)
       personName = extractPersonName(extractedText)
     } catch (extractError) {
       console.error('Text extraction error:', extractError)
+      // Continua mesmo se a extração falhar — documento é salvo sem nome
     }
 
+    // Salvar no banco
     const document = await prisma.document.create({
       data: {
         title: file.name,
@@ -62,49 +66,18 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json(
-      { message: 'Documento enviado com sucesso', document },
-      { status: 201 }
-    )
-  } catch (error) {
-    console.error('Upload error:', error)
-    return NextResponse.json(
-      { error: 'Erro ao enviar documento' },
-      { status: 500 }
-    )
-  }
-}
-
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'userId é obrigatório' },
-        { status: 400 }
-      )
-    }
-
-    const documents = await prisma.document.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        title: true,
-        fileUrl: true,
-        fileType: true,
-        personName: true,
-        createdAt: true,
+      {
+        message: 'Documento importado com sucesso',
+        document,
+        extractedText: extractedText.substring(0, 500),
       },
-    })
-
-    return NextResponse.json({ documents }, { status: 200 })
+      { status: 201 },
+    )
   } catch (error) {
-    console.error('Fetch error:', error)
+    console.error('Import error:', error)
     return NextResponse.json(
-      { error: 'Erro ao buscar documentos' },
-      { status: 500 }
+      { error: 'Erro ao importar documento' },
+      { status: 500 },
     )
   }
 }
